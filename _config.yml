@@ -2,8 +2,8 @@
 #      Main Configs       #
 # ----------------------- #
 
-url: http://olane.github.io//github
-title: Oli Lane's blog
+url: http://olane.github.io//blog
+title: Oli Lane
 subtitle: Synergistic development solutions
 author: Oli Lane
 simple_search: https://www.google.com/search
@@ -16,7 +16,7 @@ description:
 date_format: "ordinal"
 
 # RSS / Email (optional) subscription links (change if using something like Feedburner)
-subscribe_rss: /github/atom.xml
+subscribe_rss: /blog/atom.xml
 subscribe_email:
 # RSS feeds can list your email address if you like
 email:
@@ -26,10 +26,10 @@ email:
 # ----------------------- #
 
 # If publishing to a subdirectory as in http://site.com/project set 'root: /project'
-root: /github
-permalink: /blog/:year/:month/:day/:title/
+root: /blog
+permalink: /archive/:year/:month/:day/:title/
 source: source
-destination: public/github
+destination: public/blog
 plugins: plugins
 code_dir: downloads/code
 category_dir: blog/categories
@@ -53,7 +53,7 @@ sidebar: collapse
 
 # list each of the sidebar modules you want to include, in the order you want them to appear.
 # To add custom asides, create files in /source/_includes/custom/asides/ and add them to the list like 'custom/asides/custom_aside_name.html'
-default_asides: [asides/recent_posts.html, asides/github.html, asides/delicious.html, asides/pinboard.html, asides/googleplus.html, asides/footer_in_sidebar.html]
+default_asides: [asides/recent_posts.html, asides/footer_in_sidebar.html]
 
 # Each layout uses the default asides, but they can have their own asides instead. Simply uncomment the lines below
 # and add an array with the asides you want to use.
@@ -66,13 +66,13 @@ default_asides: [asides/recent_posts.html, asides/github.html, asides/delicious.
 # ----------------------- #
 
 # Github repositories
-github_user: olane
-github_repo_count: 3
+github_user: 
+github_repo_count: 
 github_show_profile_link: true
 github_skip_forks: true
 
 # Twitter
-twitter_user: oilane
+twitter_user: olilane
 twitter_tweet_button: true
 
 # Google +1
