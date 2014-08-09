@@ -4,7 +4,7 @@
   <title><![CDATA[Oli Lane]]></title>
   <link href="http://olane.github.io//blog/atom.xml" rel="self"/>
   <link href="http://olane.github.io//blog/"/>
-  <updated>2014-08-09T17:45:21+01:00</updated>
+  <updated>2014-08-09T19:03:21+01:00</updated>
   <id>http://olane.github.io//blog/</id>
   <author>
     <name><![CDATA[Oli Lane]]></name>
@@ -14,11 +14,36 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Test Post]]></title>
-    <link href="http://olane.github.io//blog/blog/2014/08/09/test-post/"/>
-    <updated>2014-08-09T16:30:59+01:00</updated>
-    <id>http://olane.github.io//blog/blog/2014/08/09/test-post</id>
-    <content type="html"><![CDATA[<p>Blahh</p>
+    <title type="html"><![CDATA[Microservices]]></title>
+    <link href="http://olane.github.io//blog/2014/08/09/microservices/"/>
+    <updated>2014-08-09T17:55:55+01:00</updated>
+    <id>http://olane.github.io//blog/2014/08/09/microservices</id>
+    <content type="html"><![CDATA[<p>The &ldquo;Microservice Architecture&rdquo; is a term that&rsquo;s appeared recently to describe a way of building complex software as a set of independent services which each serve a small, defined role. I find the architecture quite interesting because it approaches the concepts of modularity and maintainability from the perspective of the deployment of those modules, not just how the modules are written.</p>
+
+<h2>How it works</h2>
+
+<p>There&rsquo;s no precise definition of the architecture, so instead I&rsquo;ll describe the general design ideas and the basics of how we use microservices at Red Gate, where I&rsquo;m currently an intern.</p>
+
+<p>It&rsquo;s useful to consider a monolithic approach for comparison. The traditional model of a monolithic application is an application written, built and deployed as a single unit. All the functionality lives inside a single executable which spins up as a single process, and there&rsquo;s one big &ldquo;run&rdquo; button that starts the whole thing up.</p>
+
+<p>By contrast, a microservice architecture is built of many small services, each of which is independently buildable, deployable and runnable. You can spin up or spin down each service individually, and they don&rsquo;t even all have to live on the same computer.</p>
+
+<p><Figure 1. Monolithic vs Microservice Architectures></p>
+
+<p>One important question is how these microservices communicate. Microservice architectures generally favour the principle of smart endpoints and dumb pipes. That means that the method of communication between services is intentionally as minimal as possible, leaving all of the business logic in the services. This allows the services to own their own domain logic, and to remain as decoupled from the rest of the service as possible. The services, in many ways, act like classical Unix pipeline &ndash; each service taking input, transforming it in some way, and producing some output.</p>
+
+<p>One approach is to use some sort of REST-like protocol to hand messages between services. The second approach, and the one I’ll discuss, is to use a lightweight message bus like RabbitMQ.</p>
+
+<h2>The bus</h2>
+
+<p>RabbitMQ is a message broker which maintains a set of queues, and can assign different types of messages to different queues based on simple rules such as header names. It is “dumb” in that it deals only with message routing &ndash; no filtering, no transformation and no business logic happens here.</p>
+
+<p>Once messages are in a queue, they can be picked up by a service and handled. Services can send messages, subscribe to as many queues as they like, and messages can be routed to multiple queues simultaneously. For example, a service could queue one message to be picked up by multiple other services, each of which could do a different job based on the information contained). Information flows through the system asynchronously.</p>
+
+<p>TODO:
+- libraries vs services
+- Advantages
+- Disadvantages</p>
 ]]></content>
   </entry>
   
