@@ -9,7 +9,7 @@
   <meta name="author" content="Oli Lane">
 
   
-  <meta name="description" content="The &ldquo;Microservice Architecture&rdquo; is a term that&rsquo;s appeared recently to describe a way of building complex software as a set of &hellip;">
+  <meta name="description" content="The &ldquo;Microservice Architecture&rdquo; is a term that&rsquo;s flurried around the blogosphere recently to describe a way of building complex &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -93,32 +93,72 @@
   </header>
 
 
-<div class="entry-content"><p>The &ldquo;Microservice Architecture&rdquo; is a term that&rsquo;s appeared recently to describe a way of building complex software as a set of independent services which each serve a small, defined role. I find the architecture quite interesting because it approaches the concepts of modularity and maintainability from the perspective of the deployment of those modules, not just how the modules are written.</p>
+<div class="entry-content"><p>The &ldquo;Microservice Architecture&rdquo; is a term that&rsquo;s flurried around the blogosphere recently to describe a way of building complex software as a set of independent services which each serve a small, defined role. I find the architecture quite interesting because it approaches the concepts of modularity and maintainability from the perspective of how an application&rsquo;s modules are deployed, not just how they are written.</p>
 
 <h2>How it works</h2>
 
-<p>There&rsquo;s no precise definition of the architecture, so instead I&rsquo;ll describe the general design ideas and the basics of how we use microservices at Red Gate, where I&rsquo;m currently an intern.</p>
+<p>There&rsquo;s no precise definition of the architecture, so instead I&rsquo;ll describe the general design ideas and the basics of how we use microservices at <a href="http://www.red-gate.com">Red Gate</a>, where I&rsquo;m currently a software intern.</p>
 
 <p>It&rsquo;s useful to consider a monolithic approach for comparison. The traditional model of a monolithic application is an application written, built and deployed as a single unit. All the functionality lives inside a single executable which spins up as a single process, and there&rsquo;s one big &ldquo;run&rdquo; button that starts the whole thing up.</p>
 
-<p>By contrast, a microservice architecture is built of many small services, each of which is independently buildable, deployable and runnable. You can spin up or spin down each service individually, and they don&rsquo;t even all have to live on the same computer.</p>
+<p>By contrast, a microservice architecture is built of many small services, each of which is independently buildable, deployable and runnable. You can spin up or spin down each service individually, and they don&rsquo;t even all have to live on the same box.</p>
 
-<p><Figure 1. Monolithic vs Microservice Architectures></p>
+<p><img src="/blog/images/microservice_diagram.svg" width="690"></p>
 
 <p>One important question is how these microservices communicate. Microservice architectures generally favour the principle of smart endpoints and dumb pipes. That means that the method of communication between services is intentionally as minimal as possible, leaving all of the business logic in the services. This allows the services to own their own domain logic, and to remain as decoupled from the rest of the service as possible. The services, in many ways, act like classical Unix pipeline &ndash; each service taking input, transforming it in some way, and producing some output.</p>
 
-<p>One approach is to use some sort of REST-like protocol to hand messages between services. The second approach, and the one I’ll discuss, is to use a lightweight message bus like RabbitMQ.</p>
+<p>An approach you could use is to hand messages between services with some sort of REST-ish protocol. The second approach, and the one I’ll discuss, is to use a lightweight message bus like <a href="http://www.rabbitmq.com/">RabbitMQ</a>.</p>
 
 <h2>The bus</h2>
 
 <p>RabbitMQ is a message broker which maintains a set of queues, and can assign different types of messages to different queues based on simple rules such as header names. It is “dumb” in that it deals only with message routing &ndash; no filtering, no transformation and no business logic happens here.</p>
 
+<p><img src="/blog/images/AMQP.svg" title="'Source: Wikimedia commons'" ></p>
+
 <p>Once messages are in a queue, they can be picked up by a service and handled. Services can send messages, subscribe to as many queues as they like, and messages can be routed to multiple queues simultaneously. For example, a service could queue one message to be picked up by multiple other services, each of which could do a different job based on the information contained). Information flows through the system asynchronously.</p>
 
-<p>TODO:
-- libraries vs services
-- Advantages
-- Disadvantages</p>
+<p>For example, say a customer buys a product using your website. The website could queue some sort of <code>product.bought</code> messsage to alert any interested services that this had happened. One service might pick up that message and subscribe the customer to a mailing list based on the purchase, another might log the event for metrics purposes, and another could send them a billing email.</p>
+
+<p>One thing to note is that the bus <em>only</em> handles asynchronous messages. If you have a service that needs to return an answer synchronously, like the API for some database, you&rsquo;ll need to use the REST-ish approach.</p>
+
+<h2>Advantages</h2>
+
+<p>The microservice approach has a ton of advantages over the monolith architecture:</p>
+
+<ul>
+<li><p>Firstly, <strong>services are simple</strong>. Each service can concentrate on doing only one thing, and doing it well. This is essentially the basis of the <a href="http://en.wikipedia.org/wiki/Unix_philosophy">Unix Philosophy</a>.</p></li>
+<li><p><strong>You can scale each module individually</strong>. A monolithic app scales by duplicating the app onto two or more servers, and adding some sort of load balancing to route requests to each version. By contrast, if a service in your microservice app becomes a bottleneck, you can scale it by simply spinning up a new version of that service, and binding it to the same queues. The two sibling services will happily coexist, taking turns to grab messages from the queue.</p></li>
+<li><p><strong>You can deploy modules individually</strong>. If you make a small change to your metrics implementation, there&rsquo;s no need to re-deploy the whole app. Just deploy the affected service and you&rsquo;re good to go.</p></li>
+<li><p>On a related note, a microservice approach primarily approaches componentization through services, instead of libraries. If you have a piece of shared functionality, you can often make it into its own service instead of importing it everywhere it&rsquo;s needed as a library. This is useful because it means that <strong>changing a service&rsquo;s functionality only requires you to re-deploy that service</strong>. If you&rsquo;d imported a library into lots of places, on the other hand, you&rsquo;d have to re-deploy every component that used the library.</p></li>
+<li><p><strong>Services can easily pick back up where they left off</strong>. This one&rsquo;s a consequence of the asychronous nature of the message bus. If a service goes down, or gets shut down and re-deployed, the unhandled messages will just sit waiting on the queue. Once the service comes back up, it can pick up where it left off.</p></li>
+<li><p><strong>You can use different languages for each service</strong>. You can freely use C++ to handle the gnarly performance-critical code and ClojureScript for your fancy hipster metrics service.</p></li>
+<li><p><strong>Services can own their own data</strong>. The architecture strongly encourages you to modularise everything, right down to the data. A monolithic application will often store everything in one colossal database, but a service-based approach will usually have a separate service responsible for each section of the data. This is entirely possible to do with a monolithic architecture, but the more loose coupling is encouraged the better.</p></li>
+</ul>
+
+
+<h2>Disadvantages</h2>
+
+<ul>
+<li><p><strong>It&rsquo;s hard to refactor if you get the boundaries wrong</strong>. The boundaries between services are akin to the interfaces between modules in an object-oriented application. However, they&rsquo;re much harder to refactor, because all of the services interacting with the interface must usually be changed and re-deployed simultaneously. Careful thought is required during these deployments because they could cause non-obvious interactions with the live system.</p></li>
+<li><p>Partly as a result of the above point, <strong>developers need to be very aware of the production environment</strong>. As a distributed, asynchronous system, a microservice architecture can be difficult to reason about and deployment of the system can&rsquo;t really be left to a separate team. Developers must either deploy and maintain the system themselves, or work closely with those that do. This can be a challenging, if rewarding, way of working.</p></li>
+<li><p><strong>Robust automation in build and deployment systems is needed</strong>. Going from a monolithic app to a microservice app could mean multiplying the number of things you have to deploy by 20-30! This can be managed, but it requires investment in robust, well understood tooling. Luckily, this space is improving all the time.</p></li>
+<li><p><strong>Significant overhead</strong>. All those messages do come at a performance cost. This isn&rsquo;t ideal for performance critical infrastructures.</p></li>
+<li><p><strong>Emergent behaviour is hard to test</strong>. Although each service is simple, once you get dozens of them interacting with each other, they start to become hard to reason about and even harder to automate tests for.</p></li>
+</ul>
+
+
+<h2>Conclusion</h2>
+
+<p>I&rsquo;ve had a lot of fun working with a microservice architecture at Red Gate, and it&rsquo;s taught me a lot about application architectures. Microservices, like any architecture, are definitely not a silver bullet. However, they&rsquo;re a very powerful tool if used in the right context for the right reasons, and they&rsquo;re certainly an interesting topic to delve into.</p>
+
+<p>Further reading:</p>
+
+<ul>
+<li><a href="http://damianm.com/articles/human-benefits-of-a-microservice-architecture/">The human benefits of a microservice architecture</a></li>
+<li><a href="http://martinfowler.com/articles/microservices.html">Martin Fowler&rsquo;s summary of microservices</a></li>
+<li><a href="http://highscalability.com/blog/2014/4/8/microservices-not-a-free-lunch.html">Microservices &ndash; Not a free lunch!</a></li>
+</ul>
+
 </div>
 
 
