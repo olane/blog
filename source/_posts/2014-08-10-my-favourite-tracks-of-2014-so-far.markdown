@@ -11,7 +11,7 @@ Ella Eyre - If I Go
 
 {% youtube JJr80jXCepc %}
 
-Ella Eyre caught my attention last year when she collaborated with Rudimental on *Waiting All Night*, but she’s really knocked it out of the park with her debut single, *If I Go*. I simply can’t stop listening to this track. I’ve tried.
+Ella Eyre caught our attention last year when she collaborated with Rudimental on *Waiting All Night*, but she’s really knocked it out of the park with her debut single, *If I Go*. I simply can’t stop listening to this track. I’ve tried.
 
 
 Opiuo - Quack Fat
